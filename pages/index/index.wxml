@@ -1,0 +1,26 @@
+<!--index.wxml-->
+<view class="container">
+  <view class="aside">
+    <view class="{{tabIndex === index ? 'menu active' : 'menu'}}" wx:for="{{menus}}" wx:key="id" data-index="{{index}}" bindtap='tabMenu'>{{item.menu}}
+    </view>
+  </view>
+  <view class="item-content">
+    <view class="{{orderCount.num === 0 ? 'box' : 'box active'}}">
+      <view class="item" wx:for="{{menu}}" wx:key="id">
+        <image src="{{item.M_Img}}"></image>
+        <text class="title">{{item.M_Name}}</text>
+        <text class="price">￥ {{item.M_Price}} 元</text>
+        <text class="{{item.M_State == 2 ? 'btn active' : 'btn'}}" bindtap='addOrder' data-id="{{item.M_Id}}" data-index="{{index}}">{{item.M_State == 1 ? "添加": "取消"}}</text>
+      </view>
+    </view>
+  </view>
+  <view class="{{bottomFlag ? 'bottom-bar' : 'bottom-bar hidden'}}">
+    <view class="count">
+        共 <text class="num">{{orderCount.num}} 件</text>     
+        合计 <text class="num">{{orderCount.money}} 元</text> 
+    </view>
+    <view class="btn">
+        <text bindtap='card'>购物车</text>
+    </view>
+  </view>
+</view>
