@@ -12,116 +12,50 @@ Page({
     },
     bottomFlag: false,
     // 提交的订单
-    orders: true,
-    menus: [{
-      id: 1,
-      menu: '菜单一'
-    }, {
-      id: 1,
-      menu: '菜单一'
-    }, {
-      id: 1,
-      menu: '菜单一'
-    }, {
-      id: 1,
-      menu: '菜单二'
-    }, {
-      id: 1,
-      menu: '菜单三'
-    }, {
-      id: 1,
-      menu: '菜单四'
-    }, {
-      id: 1,
-      menu: '菜单五'
-    }, {
-      id: 1,
-      menu: '菜单五'
-    }, {
-      id: 1,
-      menu: '菜单五'
-    }, {
-      id: 1,
-      menu: '菜单五'
-    }, {
-      id: 1,
-      menu: '菜单五'
-    }, {
-      id: 1,
-      menu: '菜单五'
-    }, {
-      id: 1,
-      menu: '菜单五'
-    }, {
-      id: 1,
-      menu: '菜单五'
-    }, {
-      id: 1,
-      menu: '菜单五'
-    }, {
-      id: 1,
-      menu: '菜单五'
-    }],
+    orders:[],
+    menus: [
+    {id: 1,menu: '湘菜'}, 
+    {id: 2,menu: '干锅系列'}, 
+    {id: 3,menu: '铁板系列'}],
     // 商品列表
-    items: [{
-      id: 1,
-      title: '湖南辣椒小炒肉1',
-      price: 12,
-      active: false,
-      num: 1
-    }, {
-      id: 2,
-      title: '湖南辣椒小炒肉2',
-      price: 13,
-      active: false,
-      num: 1
-    }, {
-      id: 3,
-      title: '湖南辣椒小炒肉3',
-      price: 14,
-      active: false,
-      num: 1
-    }, {
-      id: 4,
-      title: '湖南辣椒小炒肉4',
-      price: 15,
-      active: false,
-      num: 1
-    }, {
-      id: 5,
-      title: '湖南辣椒小炒肉5',
-      price: 16,
-      active: false,
-      num: 1
-    }, {
-      id: 6,
-      title: '湖南辣椒小炒肉5',
-      price: 17,
-      active: false,
-      num: 1
-    }, {
-      id: 7,
-      title: '湖南辣椒小炒肉5',
-      price: 18,
-      active: false,
-      num: 1
-    }]
-    ,menu:[]
+    menu:[]
   },
-  onShow: function () {
-    var that = this//不要漏了这句，很重要
+  onLoad: function() {
+    let that = this;
+    // 取出订单传过来的数据
+    wx.getStorage({
+      key: 'orders',
+      success: function (res) {
+        that.setData({
+          orders: res.data
+        });
+      }
+    })
+  },
+  getData:function(menuType){
+    var that = this
     wx.request({
-     url: 'http://192.168.1.3:8222/api/Menu/MenuList?type=1',
+     url: 'http://192.168.1.3:8222/api/Menu/MenuList?type='+menuType,
      headers: {'Content-Type': 'application/json'},
      success: function (res) {
-       console.log(res);
        var data=JSON.parse(res.data)
-     //将获取到的json数据，存在名字叫zhihu的这个数组中
+       data.forEach(element => {
+         that.data.orders.forEach(or=>{
+          if(or.M_Id==element.M_Id)
+          {
+            element.M_State=2;
+          }
+         })
+       });
       that.setData({
         menu: data
       })
      }
     })
+  },
+  onShow: function () {
+    var that = this;
+    that.getData(1);
     },
   // 下拉刷新
   onPullDownRefresh: function () {
@@ -139,6 +73,8 @@ Page({
     this.setData({
       tabIndex: index
     });
+    let id=this.data.menus[index].id;
+    this.getData(id);
   },
   // 点击去购物车结账
   card: function() {
@@ -162,7 +98,7 @@ Page({
     let id = event.target.dataset.id;
     let index = event.target.dataset.index;
     let param = this.data.menu[index];
-    let subOrders = []; // 购物单列表存储数据
+    let subOrders = that.data.orders; // 购物单列表存储数据
     param.M_State==1 ? param.M_State = 2 : param.M_State = 1;
     // 改变添加按钮的状态
     this.data.menu.splice(index, 1, param);
@@ -170,11 +106,14 @@ Page({
       menu: this.data.menu
     });
     // 将已经确定的菜单添加到购物单列表
-    this.data.menu.forEach(item => {
-      if (item.M_State==2) {
-        subOrders.push(item);
-      }
-    });
+    if(param.M_State==2){subOrders.push(param);}
+    else{that.delarr(param.M_Id);}
+
+    //this.data.menu.forEach(item => {
+    //  if (item.M_State==2) {
+        
+    //  }
+    //});
     // 判断底部提交菜单显示隐藏
     if (subOrders.length == 0) {
       that.setData({
@@ -196,7 +135,8 @@ Page({
     }
     // 设置显示对应的总数和全部价钱
     this.setData({
-      orderCount
+      orderCount,
+      orders:subOrders
     });
     // 将选中的商品存储在本地
     wx.setStorage({
@@ -204,7 +144,24 @@ Page({
       data: subOrders
     });
   },
-  onLoad: function() {
-
-  }
+  delarr:function(_obj) {
+    var that=this;
+            var length = that.data.orders.length;
+            for (var i = 0; i < length; i++) {
+                if (that.data.orders[i].M_Id == _obj) {
+                    if (i == 0) {
+                        that.data.orders.shift(); //删除并返回数组的第一个元素
+                        return;
+                    }
+                    else if (i == length - 1) {
+                      that.data.orders.pop();  //删除并返回数组的最后一个元素
+                        return;
+                    }
+                    else {
+                      that.data.orders.splice(i, 1); //删除下标为i的元素
+                        return;
+                    }
+                }
+            }
+        }
 })

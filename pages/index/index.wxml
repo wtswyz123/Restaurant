@@ -1,8 +1,7 @@
 <!--index.wxml-->
 <view class="container">
   <view class="aside">
-    <view class="{{tabIndex === index ? 'menu active' : 'menu'}}" wx:for="{{menus}}" wx:key="id" data-index="{{index}}" bindtap='tabMenu'>{{item.menu}}
-    </view>
+    <view class="{{tabIndex === index ? 'menu active' : 'menu'}}" wx:for="{{menus}}" wx:key="id" data-index="{{index}}" bindtap='tabMenu'>{{item.menu}}</view>
   </view>
   <view class="item-content">
     <view class="{{orderCount.num === 0 ? 'box' : 'box active'}}">
